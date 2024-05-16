@@ -1,0 +1,7 @@
+/tmp
+*.exe
+.env
+.env.sh
+*.pem
+main_iwasbornalone
+w1key
