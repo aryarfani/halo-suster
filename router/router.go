@@ -36,4 +36,9 @@ func SetupRoutes(app *fiber.App) {
 	patient := medical.Group("/patient")
 	patient.Get("/", middleware.Auth(), handler.GetPatients)
 	patient.Post("/", middleware.Auth(), handler.CreatePatient)
+
+	// Record
+	record := medical.Group("/record")
+	record.Get("/", middleware.Auth(), handler.GetRecords)
+	record.Post("/", middleware.Auth(), handler.CreateRecord)
 }
