@@ -41,4 +41,7 @@ func SetupRoutes(app *fiber.App) {
 	record := medical.Group("/record")
 	record.Get("/", middleware.Auth(), handler.GetRecords)
 	record.Post("/", middleware.Auth(), handler.CreateRecord)
+
+	// Image
+	api.Post("/image", handler.UploadImage)
 }

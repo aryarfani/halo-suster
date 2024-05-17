@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"eniqilo-store/config/storage"
 	"eniqilo-store/db"
 	"eniqilo-store/router"
 	"eniqilo-store/utils"
@@ -17,6 +18,7 @@ import (
 
 func main() {
 	db.Connect()
+	storage.New()
 
 	utils.InitValidator()
 
