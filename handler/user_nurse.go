@@ -210,6 +210,16 @@ func UpdateUserNurse(c *fiber.Ctx) error {
 		})
 	}
 
+	//* Validate NIP is unique
+	var doesNipExist bool
+	_ = db.DB.QueryRow("SELECT EXISTS (SELECT * FROM users WHERE nip = $1 AND id <> $2)", req.NIP, userId).
+		Scan(&doesNipExist)
+	if doesNipExist {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": "NIP is already registered",
+		})
+	}
+
 	// Update nurse
 	_, err = db.DB.Exec("UPDATE users SET nip = $1, name = $2 WHERE id = $3", req.NIP, req.Name, userId)
 	if err != nil {

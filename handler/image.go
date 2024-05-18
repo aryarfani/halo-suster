@@ -1,9 +1,12 @@
 package handler
 
 import (
-	"eniqilo-store/service"
+	"eniqilo-store/config/storage"
+	"mime/multipart"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 const (
@@ -23,19 +26,28 @@ func UploadImage(c *fiber.Ctx) error {
 	}
 
 	// Validate file extension
-	if !service.IsValidImage(fileHeader) {
+	if !IsValidImage(fileHeader) {
 		return c.Status(fiber.StatusBadRequest).SendString("Only .jpg and .jpeg formats are allowed")
 	}
 
 	// Upload File
-	err = service.UploadImage(fileHeader)
+	newFileName := uuid.NewString() + ".jpg"
+	uploadOutput, err := storage.Upload(newFileName, fileHeader)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Record created successfully",
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "File uploaded sucessfully",
+		"data": fiber.Map{
+			"imageUrl": uploadOutput.Location,
+		},
 	})
+}
+
+func IsValidImage(fileHeader *multipart.FileHeader) bool {
+	ext := strings.ToLower(fileHeader.Filename[strings.LastIndex(fileHeader.Filename, ".")+1:])
+	return ext == "jpg" || ext == "jpeg"
 }

@@ -16,6 +16,6 @@ type UpdatePasswordUserNurseRequest struct {
 }
 
 type UpdateUserNurseRequest struct {
-	NIP  int    `json:"nip" validate:"required,xIntStartsWith=303,nip_genderdigit,nip_validyear,nip_validmonth,nip_validrandomdigits"`
+	NIP  int    `json:"nip" validate:"required,nip_genderdigit,nip_validyear,nip_validmonth,nip_validrandomdigits"`
 	Name string `json:"name" validate:"required,min=5,max=50"`
 }
