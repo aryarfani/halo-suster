@@ -32,3 +32,9 @@ migrate-force:
 migrate-version:
 	@echo "Print current migration version"
 	@$(MIGRATE) version
+
+.PHONY: migrate-refresh
+migrate-refresh:
+	@echo "Refresh database migrations"
+	@$(MIGRATE) down -all
+	@$(MIGRATE) up

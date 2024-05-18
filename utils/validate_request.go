@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -20,6 +21,11 @@ func InitValidator() {
 	validate.RegisterValidation("xBool", validateBoolean)
 	validate.RegisterValidation("xNumeric", validateNumeric)
 	validate.RegisterValidation("xIntLen", validateNumberOfDigit)
+	validate.RegisterValidation("xIntStartsWith", validateIntStartsWith)
+	validate.RegisterValidation("nip_genderdigit", validGenderDigit)
+	validate.RegisterValidation("nip_validyear", validYear)
+	validate.RegisterValidation("nip_validmonth", validMonth)
+	validate.RegisterValidation("nip_validrandomdigits", validRandomDigits)
 
 	// register tag name to be validated instead using field name
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
@@ -177,4 +183,65 @@ func validateNumberOfDigit(fl validator.FieldLevel) bool {
 	}
 
 	return n == param
+}
+
+func validateIntStartsWith(fl validator.FieldLevel) bool {
+	// Get the field's value as an integer
+	value := fl.Field().Int()
+
+	// Get the parameter (the starting digit) from the tag
+	param := fl.Param()
+
+	// Convert the integer value to a string
+	valueStr := strconv.FormatInt(value, 10)
+
+	// Check if the value starts with the specified digit
+	return strings.HasPrefix(valueStr, param)
+}
+
+// Custom validation function to check the fourth digit for gender
+func validGenderDigit(fl validator.FieldLevel) bool {
+	nip := strconv.FormatInt(fl.Field().Int(), 10)
+	if len(nip) < 4 {
+		return false
+	}
+	genderDigit := nip[3]
+	return genderDigit == '1' || genderDigit == '2'
+}
+
+// Custom validation function to check if year is between 2000 and current year
+func validYear(fl validator.FieldLevel) bool {
+	nip := strconv.FormatInt(fl.Field().Int(), 10)
+	if len(nip) < 8 {
+		return false
+	}
+	year, err := strconv.Atoi(nip[4:8])
+	if err != nil {
+		return false
+	}
+	currentYear := time.Now().Year()
+	return year >= 2000 && year <= currentYear
+}
+
+// Custom validation function to check if month is between 01 and 12
+func validMonth(fl validator.FieldLevel) bool {
+	nip := strconv.FormatInt(fl.Field().Int(), 10)
+	if len(nip) < 10 {
+		return false
+	}
+	month, err := strconv.Atoi(nip[8:10])
+	if err != nil {
+		return false
+	}
+	return month >= 1 && month <= 12
+}
+
+// Custom validation function to check if the last digits are in valid range
+func validRandomDigits(fl validator.FieldLevel) bool {
+	nip := strconv.FormatInt(fl.Field().Int(), 10)
+	if len(nip) < 11 {
+		return false
+	}
+	randomDigits := nip[10:]
+	return len(randomDigits) >= 3 && len(randomDigits) <= 5
 }

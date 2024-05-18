@@ -14,6 +14,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// User
 	user := api.Group("/user")
+	user.Get("/", middleware.Auth(), handler.GetUsers)
 
 	// IT
 	it := user.Group("/it")
@@ -22,7 +23,6 @@ func SetupRoutes(app *fiber.App) {
 
 	// Nurse
 	nurse := user.Group("/nurse")
-	nurse.Get("/", middleware.Auth(), handler.GetUsers)
 	nurse.Post("/login", handler.LoginUserNurse)
 	nurse.Post("/register", middleware.Auth(), handler.RegisterUserNurse)
 	nurse.Post("/:id/access", middleware.Auth(), handler.ChangePasswordUserNurse)
@@ -43,5 +43,5 @@ func SetupRoutes(app *fiber.App) {
 	record.Post("/", middleware.Auth(), handler.CreateRecord)
 
 	// Image
-	api.Post("/image", handler.UploadImage)
+	api.Post("/image", middleware.Auth(), handler.UploadImage)
 }

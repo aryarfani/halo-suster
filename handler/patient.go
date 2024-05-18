@@ -16,18 +16,18 @@ func GetPatients(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit", 5)
 	offset := c.QueryInt("offset", 0)
 	name := c.Query("name")
-	identityNumber := c.QueryInt("identity_number")
-	phoneNumber := c.Query("phone_number")
-	createdAt := c.Query("created_at")
+	identityNumber := c.QueryInt("identityNumber")
+	phoneNumber := c.Query("phoneNumber")
+	createdAt := c.Query("createdAt")
 
-	statement := "SELECT identity_number, phone_number, name, birth_date, gender, identity_card_scan_img, created_at FROM patients "
+	statement := "SELECT identity_number, phone_number, name, birth_date, gender, identity_card_scan_img, created_at FROM patients WHERE 1=1"
 
 	if name != "" {
 		statement += " AND name ILIKE '%" + name + "%'"
 	}
 
 	if identityNumber != 0 {
-		statement += fmt.Sprintf(" AND nip = %d", identityNumber)
+		statement += fmt.Sprintf(" AND identity_number = %d", identityNumber)
 	}
 
 	if phoneNumber != "" {

@@ -7,6 +7,7 @@ import (
 	"eniqilo-store/model"
 	"eniqilo-store/utils"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 
@@ -17,24 +18,34 @@ func GetUsers(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit", 5)
 	offset := c.QueryInt("offset", 0)
 	name := c.Query("name")
+	role := c.Query("role")
 	nip := c.QueryInt("nip")
 	createdAt := c.Query("created_at")
+	userId := c.Query("userId")
 
 	statement := "SELECT id, nip, name, created_at FROM users WHERE deleted_at IS NULL"
 
+	if userId != "" {
+		statement += " AND id = '" + userId + "' "
+	}
 	if name != "" {
 		statement += " AND name ILIKE '%" + name + "%'"
 	}
 
 	if nip != 0 {
-		statement += fmt.Sprintf(" AND nip LIKE '%d'", nip)
+		statement += fmt.Sprintf(" AND nip::TEXT LIKE '%%%d%%'", nip)
 	}
 
 	if createdAt == "asc" || createdAt == "desc" {
 		statement += fmt.Sprintf(" ORDER BY created_at %s ", createdAt)
 	}
 
+	if role == "it" || role == "nurse" {
+		statement += fmt.Sprintf(" AND role = '%s' ", role)
+	}
+
 	statement += fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset)
+	log.Println(statement)
 	rows, err := db.DB.Query(statement)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -173,19 +184,11 @@ func ChangePasswordUserNurse(c *fiber.Ctx) error {
 }
 
 func UpdateUserNurse(c *fiber.Ctx) error {
-	var req requests.UpdateUserNurseRequest
-	_ = c.BodyParser(&req)
-	if err := utils.ValidateRequest(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err,
-		})
-	}
-
 	userId := c.Params("id")
 
 	//* Validate user exists
 	var doesUserExist bool
-	err := db.DB.QueryRow("SELECT EXISTS (SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL)", userId).
+	err := db.DB.QueryRow("SELECT EXISTS (SELECT * FROM users WHERE id = $1 AND role = $2 AND deleted_at IS NULL)", userId, constant.Nurse).
 		Scan(&doesUserExist)
 	if !doesUserExist {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -196,6 +199,14 @@ func UpdateUserNurse(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
+		})
+	}
+
+	var req requests.UpdateUserNurseRequest
+	_ = c.BodyParser(&req)
+	if err := utils.ValidateRequest(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err,
 		})
 	}
 
@@ -217,7 +228,7 @@ func DeleteUserNurse(c *fiber.Ctx) error {
 
 	//* Validate user exists
 	var doesUserExist bool
-	err := db.DB.QueryRow("SELECT EXISTS (SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL)", userId).
+	err := db.DB.QueryRow("SELECT EXISTS (SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL AND role = $2)", userId, constant.Nurse).
 		Scan(&doesUserExist)
 	if !doesUserExist {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
