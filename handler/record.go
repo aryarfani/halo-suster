@@ -114,7 +114,7 @@ func CreateRecord(c *fiber.Ctx) error {
 	var existingId string
 	db.DB.QueryRow("SELECT id FROM patients WHERE identity_number = $1", req.IdentityNumber).Scan(&existingId)
 	if existingId == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Patient not found",
 		})
 	}
